@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rapport Technique et Sécurité - SecureAuth</title>
+  <style>
+    :root {
+      --primary: #1e3a8a;
+      --primary-light: #3b82f6;
+      --secondary: #0f172a;
+      --accent: #10b981;
+      --danger: #ef4444;
+      --warning: #f59e0b;
+      --bg: #ffffff;
+      --bg-alt: #f8fafc;
+      --border: #e2e8f0;
+      --text: #1e293b;
+      --text-muted: #64748b;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      color: var(--text);
+      background-color: var(--bg-alt);
+      line-height: 1.6;
+      font-size: 14px;
+    }
+
+    .toolbar {
+      position: sticky;
+      top: 0;
+      background: rgba(15, 23, 42, 0.95);
+      backdrop-filter: blur(8px);
+      color: white;
+      padding: 12px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      z-index: 1000;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+
+    .toolbar-title {
+      font-weight: 700;
+      font-size: 15px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn-print {
+      background: linear-gradient(135deg, #2563eb, #1d4ed8);
+      color: white;
+      border: none;
+      padding: 8px 18px;
+      font-size: 13px;
+      font-weight: 600;
+      border-radius: 6px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      box-shadow: 0 2px 6px rgba(37,99,235,0.4);
+      transition: all 0.2s ease;
+    }
+
+    .btn-print:hover {
+      background: #1e40af;
+      transform: translateY(-1px);
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 30px auto;
+      background: white;
+      padding: 60px 70px;
+      border-radius: 12px;
+      box-shadow: 0 4px 25px rgba(0, 0, 0, 0.06);
+      border: 1px solid var(--border);
+    }
+
+    /* Page de garde */
+    .cover {
+      border-bottom: 2px solid var(--border);
+      padding-bottom: 35px;
+      margin-bottom: 35px;
+      text-align: center;
+    }
+
+    .cover-badge {
+      display: inline-block;
+      background: #eff6ff;
+      color: var(--primary-light);
+      border: 1px solid #bfdbfe;
+      padding: 5px 14px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 15px;
+    }
+
+    .cover-title {
+      font-size: 28px;
+      font-weight: 800;
+      color: var(--secondary);
+      line-height: 1.25;
+      margin-bottom: 12px;
+    }
+
+    .cover-subtitle {
+      font-size: 16px;
+      color: var(--text-muted);
+      max-width: 650px;
+      margin: 0 auto 20px auto;
+    }
+
+    .meta-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      background: var(--bg-alt);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 14px;
+      text-align: left;
+      font-size: 12px;
+    }
+
+    .meta-item strong {
+      color: var(--secondary);
+      display: block;
+      margin-bottom: 2px;
+    }
+
+    h2 {
+      font-size: 19px;
+      color: var(--secondary);
+      border-bottom: 2px solid #e2e8f0;
+      padding-bottom: 6px;
+      margin-top: 35px;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    h2 .num {
+      background: var(--primary);
+      color: white;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+    }
+
+    h3 {
+      font-size: 15px;
+      color: var(--primary);
+      margin-top: 20px;
+      margin-bottom: 8px;
+    }
+
+    p {
+      margin-bottom: 12px;
+      text-align: justify;
+    }
+
+    ul, ol {
+      margin-left: 20px;
+      margin-bottom: 14px;
+    }
+
+    li {
+      margin-bottom: 5px;
+    }
+
+    .card-phase {
+      background: var(--bg-alt);
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--primary-light);
+      border-radius: 6px;
+      padding: 16px 18px;
+      margin-bottom: 18px;
+    }
+
+    .card-phase.crypto { border-left-color: #8b5cf6; }
+    .card-phase.rbac { border-left-color: var(--accent); }
+    .card-phase.net { border-left-color: var(--warning); }
+    .card-phase.audit { border-left-color: #06b6d4; }
+
+    .card-phase-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .card-phase-title {
+      font-weight: 700;
+      font-size: 15px;
+      color: var(--secondary);
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    .badge-primary { background: #dbeafe; color: #1e40af; }
+    .badge-success { background: #d1fae5; color: #065f46; }
+    .badge-warning { background: #fef3c7; color: #92400e; }
+    .badge-purple { background: #ede9fe; color: #5b21b6; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 16px 0;
+      font-size: 12.5px;
+    }
+
+    table th, table td {
+      border: 1px solid var(--border);
+      padding: 10px 12px;
+      text-align: left;
+    }
+
+    table th {
+      background: #f1f5f9;
+      color: var(--secondary);
+      font-weight: 700;
+    }
+
+    table tr:nth-child(even) {
+      background: #f8fafc;
+    }
+
+    code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      background: #f1f5f9;
+      color: #be123c;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 12px;
+    }
+
+    pre {
+      background: #0f172a;
+      color: #f8fafc;
+      padding: 12px 16px;
+      border-radius: 6px;
+      overflow-x: auto;
+      font-size: 12px;
+      margin: 12px 0;
+      line-height: 1.5;
+    }
+
+    .note-box {
+      background: #fffbeb;
+      border: 1px solid #fde68a;
+      border-left: 4px solid var(--warning);
+      padding: 12px 15px;
+      border-radius: 6px;
+      margin: 15px 0;
+      font-size: 13px;
+    }
+
+    .conclusion-box {
+      background: #ecfdf5;
+      border: 1px solid #a7f3d0;
+      border-left: 4px solid var(--accent);
+      padding: 16px;
+      border-radius: 6px;
+      margin-top: 25px;
+    }
+
+    /* Styles d'impression */
+    @media print {
+      body {
+        background: white;
+        color: black;
+      }
+
+      .toolbar {
+        display: none;
+      }
+
+      .container {
+        max-width: 100%;
+        margin: 0;
+        padding: 0;
+        box-shadow: none;
+        border: none;
+      }
+
+      .page-break {
+        page-break-before: always;
+      }
+
+      h2 {
+        page-break-after: avoid;
+      }
+
+      .card-phase, table, pre {
+        page-break-inside: avoid;
+      }
+
+      @page {
+        margin: 18mm 15mm;
+        size: A4;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Barre d'outils avec bouton d'impression PDF -->
+  <div class="toolbar">
+    <div class="toolbar-title">
+      🛡️ SecureAuth – Dossier Technique de Sécurité Informatique
+    </div>
+    <button class="btn-print" onclick="window.print()">
+      📄 Exporter / Imprimer en PDF (Ctrl + P)
+    </button>
+  </div>
+
+  <div class="container">
+
+    <!-- Couverture / En-tête -->
+    <div class="cover">
+      <div class="cover-badge">Projet Universitaire de Sécurité Informatique</div>
+      <h1 class="cover-title">Système Sécurisé d'Authentification,<br>Contrôle d'Accès et Cryptographie</h1>
+      <p class="cover-subtitle">
+        Dossier d'architecture logicielle, implémentation des contre-mesures de sécurité et analyse des mécanismes de protection (OWASP, RBAC, AES-256, Bcrypt, HMAC).
+      </p>
+
+      <div class="meta-grid">
+        <div class="meta-item">
+          <strong>Framework & Langage</strong>
+          Python 3.11 / Flask 3.0
+        </div>
+        <div class="meta-item">
+          <strong>Base de Données</strong>
+          SQLite / SQLAlchemy ORM
+        </div>
+        <div class="meta-item">
+          <strong>Cryptographie</strong>
+          Fernet (AES-256) & HMAC-SHA256
+        </div>
+      </div>
+    </div>
+
+    <!-- Section 1 : Introduction & Objectifs -->
+    <h2><span class="num">1</span> Présentation Générale & Objectifs</h2>
+    <p>
+      Le projet <strong>SecureAuth</strong> est une solution web d'authentification robuste développée selon le principe de <em>Défense en Profondeur</em> (Defense in Depth). L'application n'est pas un simple portail de connexion, mais une plateforme d'ingénierie démontrant la mise en œuvre de standards cryptographiques et de mécanismes de protection contre les vulnérabilités du <strong>Top 10 OWASP</strong>.
+    </p>
+    <p>
+      L'application sépare de façon hermétique deux contextes d'utilisation :
+    </p>
+    <ul>
+      <li><strong>Espace Utilisateur (User) :</strong> Gestion du profil personnel, changement de mot de passe, console de chiffrement/déchiffrement de messages confidentiels et signature d'intégrité HMAC.</li>
+      <li><strong>Espace Administrateur (Admin) :</strong> Supervision du système, statistiques de connexion en temps réel, gestion complète des comptes (activation, rôles, suppression) et consultation du registre d'audit de sécurité (Security Logs).</li>
+    </ul>
+
+    <!-- Section 2 : Architecture Technique -->
+    <h2><span class="num">2</span> Architecture du Système</h2>
+    <p>
+      L'application respecte le patron de conception <strong>Application Factory Pattern</strong> recommandé par Flask, garantissant l'isolation des états et facilitant les tests unitaires via <code>Pytest</code>.
+    </p>
+    <table>
+      <thead>
+        <tr>
+          <th>Composant</th>
+          <th>Fichiers clés</th>
+          <th>Responsabilité & Sécurité</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Factory & Configuration</strong></td>
+          <td><code>app/__init__.py</code>, <code>config.py</code></td>
+          <td>Initialisation des extensions, chargement des variables d'environnement (<code>.env</code>), configuration des headers HTTP stricts.</td>
+        </tr>
+        <tr>
+          <td><strong>Modèles de Données</strong></td>
+          <td><code>app/models.py</code></td>
+          <td>Schémas relationnels SQLAlchemy (<code>User</code>, <code>SecureData</code>, <code>SecurityLog</code>). Relations avec suppression en cascade.</td>
+        </tr>
+        <tr>
+          <td><strong>Blueprints & Contrôleurs</strong></td>
+          <td><code>app/routes/auth.py</code><br><code>app/routes/user.py</code><br><code>app/routes/admin.py</code></td>
+          <td>Routage modulaire, validation des entrées (sanitization), distinction API REST JSON et rendus HTML Jinja2.</td>
+        </tr>
+        <tr>
+          <td><strong>Moteur Cryptographique</strong></td>
+          <td><code>app/utils/crypto.py</code></td>
+          <td>Fonctions pures de chiffrement AES-256, génération et validation d'empreintes HMAC, hachage SHA-256.</td>
+        </tr>
+        <tr>
+          <td><strong>Garde d'Accès & Middleware</strong></td>
+          <td><code>app/utils/security.py</code></td>
+          <td>Décorateurs <code>@login_required</code> et <code>@admin_required</code>, journalisation centralisée des événements de sécurité.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="page-break"></div>
+
+    <!-- Section 3 : Les Phases de Sécurité Détaillées -->
+    <h2><span class="num">3</span> Les Phases & Mécanismes de Sécurité</h2>
+
+    <!-- Phase 1 -->
+    <div class="card-phase">
+      <div class="card-phase-header">
+        <span class="card-phase-title">Phase 1 : Authentification Robuste & Gestion des Mots de Passe</span>
+        <span class="badge badge-primary">Auth & Hachage</span>
+      </div>
+      <p>
+        <strong>Problématique :</strong> Le stockage de mots de passe en clair ou avec des algorithmes rapides (MD5, SHA-1, SHA-256) expose les identifiants aux attaques par dictionnaires et tables arc-en-ciel (rainbow tables).
+      </p>
+      <ul>
+        <li><strong>Hachage adaptatif Bcrypt (Rounds = 12) :</strong> Les mots de passe ne sont jamais sauvegardés en clair. L'algorithme Bcrypt intègre un sel cryptographique aléatoire par utilisateur et un facteur de coût de 12 (environ 250ms de calcul CPU par mot de passe), rendant les attaques par force brute matériellement inopérantes.</li>
+        <li><strong>Politique de complexité stricte :</strong> Validation côté serveur (<code>helpers.validate_password_strength</code>) exigeant au moins 8 caractères, une majuscule, un chiffre et un caractère spécial. Accompagné d'un indicateur dynamique de force en JavaScript côté client.</li>
+        <li><strong>Résistance aux attaques temporelles (Timing Attacks) :</strong> L'appel à <code>bcrypt.check_password_hash()</code> s'exécute en temps constant. Les messages d'erreur lors d'un échec de connexion sont unifiés (<em>"Email ou mot de passe incorrect"</em>) afin d'empêcher l'énumération des comptes existants.</li>
+      </ul>
+    </div>
+
+    <!-- Phase 2 -->
+    <div class="card-phase">
+      <div class="card-phase-header">
+        <span class="card-phase-title">Phase 2 : Gestion des Sessions & Hygiène des Cookies</span>
+        <span class="badge badge-primary">Session Management</span>
+      </div>
+      <p>
+        <strong>Problématique :</strong> Le vol de session (Session Hijacking) permet à un attaquant d'usurper l'identité d'un utilisateur sans connaître ses identifiants.
+      </p>
+      <ul>
+        <li><strong>Attribut <code>HttpOnly</code> activé :</strong> Le cookie de session Flask est inaccessible via l'API JavaScript <code>document.cookie</code>, neutralisant le vol de session en cas d'attaque XSS.</li>
+        <li><strong>Attribut <code>SameSite = Lax</code> :</strong> Empêche l'envoi du cookie de session lors de requêtes inter-sites non sollicitées, constituant une barrière directe contre le Cross-Site Request Forgery.</li>
+        <li><strong>Expiration temporelle (TTL 30 min) :</strong> Déconnexion automatique après 1800 secondes d'inactivité, limitant la fenêtre d'exposition sur les postes partagés.</li>
+        <li><strong>Régénération & Nettoyage :</strong> À la déconnexion (<code>/api/logout</code>), la session côté serveur est purgée via <code>session.clear()</code> et le cookie est invalidé.</li>
+      </ul>
+    </div>
+
+    <!-- Phase 3 -->
+    <div class="card-phase rbac">
+      <div class="card-phase-header">
+        <span class="card-phase-title">Phase 3 : Contrôle d'Accès Basé sur les Rôles (RBAC)</span>
+        <span class="badge badge-success">Contrôle d'Accès</span>
+      </div>
+      <p>
+        <strong>Problématique :</strong> L'élévation de privilèges horizontale (accéder aux données d'un autre utilisateur) et verticale (accéder aux fonctions admin).
+      </p>
+      <ul>
+        <li><strong>Décorateurs serveurs stricts :</strong> Les routes sont protégées par <code>@login_required</code> (vérification de la session active et compte utilisateur non désactivé) et <code>@admin_required</code> (vérification de <code>user.role == 'admin'</code>).</li>
+        <li><strong>Validation systématique en base de données :</strong> Le middleware ne fait pas confiance aveuglément au cookie : il recharge l'entité <code>User</code> en base de données pour confirmer que le compte est toujours actif (<code>is_active == True</code>).</li>
+        <li><strong>Réponses différenciées :</strong> Renvoi d'un code HTTP <code>401 Unauthorized</code> ou <code>403 Forbidden</code> au format JSON pour les appels d'API, ou redirection vers les pages d'erreur personnalisées pour les requêtes HTML classiques.</li>
+      </ul>
+    </div>
+
+    <!-- Phase 4 -->
+    <div class="card-phase crypto">
+      <div class="card-phase-header">
+        <span class="card-phase-title">Phase 4 : Cryptographie Symétrique & Intégrité des Données</span>
+        <span class="badge badge-purple">AES-256 & HMAC</span>
+      </div>
+      <p>
+        <strong>Problématique :</strong> La compromission de la base de données ne doit pas dévoiler les messages sensibles stockés, et les modifications malveillantes doivent être détectées.
+      </p>
+      <ul>
+        <li><strong>Chiffrement symétrique AES-256 (Fernet) :</strong> Implémentation via la bibliothèque <code>cryptography</code>. Fernet utilise AES en mode CBC avec un padding PKCS7, une clé de 256 bits et un vecteur d'initialisation (IV) aléatoire généré à chaque appel. Deux chiffrements du même message produisent des sorties totalement différentes.</li>
+        <li><strong>Signature d'Intégrité HMAC-SHA256 :</strong> Un code d'authentification de message est calculé avec une clé secrète distincte (<code>HMAC_SECRET_KEY</code>). Avant tout déchiffrement, le HMAC est validé.</li>
+        <li><strong>Comparaison en temps constant :</strong> La vérification du HMAC emploie <code>hmac.compare_digest()</code> pour neutraliser les attaques par analyse temporelle.</li>
+      </ul>
+    </div>
+
+    <!-- Phase 5 -->
+    <div class="card-phase net">
+      <div class="card-phase-header">
+        <span class="card-phase-title">Phase 5 : Défense en Profondeur (Réseau, Limites & En-têtes HTTP)</span>
+        <span class="badge badge-warning">Sécurité Web</span>
+      </div>
+      <p>
+        <strong>Problématique :</strong> Attaques par déni de service applicatif (DoS), force brute, injection XSS et framing malveillant.
+      </p>
+      <ul>
+        <li><strong>Limitation de débit (Rate Limiting via Flask-Limiter) :</strong>
+          <ul>
+            <li>Route de connexion (<code>/api/login</code>) : maximum <strong>5 tentatives par 10 minutes</strong> par IP.</li>
+            <li>Route d'inscription (<code>/api/register</code>) : maximum <strong>10 créations de compte par heure</strong> par IP.</li>
+          </ul>
+        </li>
+        <li><strong>Protection CSRF globale (Flask-WTF) :</strong> Injection d'un jeton dans la balise <code>&lt;meta name="csrf-token"&gt;</code>, automatiquement récupéré par l'intercepteur JavaScript dans <code>main.js</code> et envoyé dans l'en-tête <code>X-CSRFToken</code>.</li>
+        <li><strong>En-têtes de sécurité HTTP (Security Headers) :</strong>
+          <ul>
+            <li><code>Content-Security-Policy (CSP)</code> : restreint les sources de scripts, styles et polices.</li>
+            <li><code>X-Frame-Options: DENY</code> : neutralise le détournement de clic (Clickjacking).</li>
+            <li><code>X-Content-Type-Options: nosniff</code> : empêche le MIME-sniffing par les navigateurs.</li>
+            <li><code>X-XSS-Protection: 1; mode=block</code> : filtre XSS hérité activé.</li>
+          </ul>
+        </li>
+      </ul>
+    </div>
+
+    <!-- Phase 6 -->
+    <div class="card-phase audit">
+      <div class="card-phase-header">
+        <span class="card-phase-title">Phase 6 : Journalisation de Sécurité & Piste d'Audit (Audit Trail)</span>
+        <span class="badge badge-primary">Traçabilité & SIEM</span>
+      </div>
+      <p>
+        <strong>Problématique :</strong> L'impossibilité de reconstituer une attaque après incident (absence d'imputabilité et de forensic).
+      </p>
+      <ul>
+        <li><strong>Modèle <code>SecurityLog</code> dédié :</strong> Enregistrement systématique de l'action, de l'ID utilisateur, de l'adresse IP cliente (avec gestion des proxies via <code>X-Forwarded-For</code>), de l'agent utilisateur (User-Agent) et de l'horodatage UTC.</li>
+        <li><strong>Protection des données sensibles dans les logs :</strong> La fonction <code>log_security_event()</code> n'enregistre jamais de mot de passe, de texte en clair ou de clé de chiffrement.</li>
+        <li><strong>Supervision Admin :</strong> Interface de visualisation dédiée avec filtres avancés par action, statut (succès/échec) et pagination dynamique.</li>
+      </ul>
+    </div>
+
+    <div class="page-break"></div>
+
+    <!-- Section 4 : Matrice des Risques OWASP -->
+    <h2><span class="num">4</span> Matrice des Vulnérabilités OWASP Top 10</h2>
+    <p>
+      Ce tableau synthétise la couverture des risques de sécurité majeurs du web au sein de l'application :
+    </p>
+    <table>
+      <thead>
+        <tr>
+          <th>Vulnérabilité OWASP</th>
+          <th>Risque Associé</th>
+          <th>Contre-Mesure Implémentée dans le Projet</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>A01: Broken Access Control</strong></td>
+          <td>Accès non autorisé aux pages admin ou données tiers.</td>
+          <td>Décorateurs <code>@login_required</code> et <code>@admin_required</code>, validation côté serveur, isolation des requêtes par <code>user_id</code>.</td>
+        </tr>
+        <tr>
+          <td><strong>A02: Cryptographic Failures</strong></td>
+          <td>Fuite de mots de passe ou de données confidentielles.</td>
+          <td>Hachage Bcrypt coût 12, chiffrement AES-256 (Fernet), HMAC-SHA256, clés secrètes stockées dans <code>.env</code> (hors code source).</td>
+        </tr>
+        <tr>
+          <td><strong>A03: Injection (SQLi, XSS)</strong></td>
+          <td>Altération de la base ou exécution de code malveillant.</td>
+          <td>Requêtes paramétrées via l'ORM SQLAlchemy, échappement Jinja2 automatique, assainissement <code>helpers.sanitize_string()</code>.</td>
+        </tr>
+        <tr>
+          <td><strong>A04: Insecure Design</strong></td>
+          <td>Attaques par force brute sur les mots de passe.</td>
+          <td>Rate Limiting IP (Flask-Limiter), politique de complexité des mots de passe avec test de robustesse.</td>
+        </tr>
+        <tr>
+          <td><strong>A05: Security Misconfiguration</strong></td>
+          <td>Fuite d'informations par en-têtes ou messages d'erreur.</td>
+          <td>En-têtes CSP, Frame-Options, gestionnaires d'erreurs génériques 403, 404, 500 sans divulgation de stacktrace.</td>
+        </tr>
+        <tr>
+          <td><strong>A07: Identification Failures</strong></td>
+          <td>Vol de session, credential stuffing.</td>
+          <td>Cookies <code>HttpOnly</code>, <code>SameSite=Lax</code>, invalidation complète lors du logout, expiration de session à 30 minutes.</td>
+        </tr>
+        <tr>
+          <td><strong>A09: Logging & Monitoring</strong></td>
+          <td>Attaques silencieuses non détectées.</td>
+          <td>Table <code>SecurityLog</code> horodatée traçant toutes les connexions, échecs, changements de rôle et actions critiques.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- Section 5 : Procédure de Test -->
+    <h2><span class="num">5</span> Procédure de Démonstration & Validation</h2>
+    <p>
+      Pour valider le bon fonctionnement de l'ensemble de la chaîne de sécurité lors d'une soutenance ou d'une évaluation :
+    </p>
+
+    <div class="note-box">
+      <strong>Identifiants Administrateur Initiaux :</strong><br>
+      • <strong>Email :</strong> <code>admin@projet.com</code><br>
+      • <strong>Mot de passe :</strong> <code>Admin123!</code>
+    </div>
+
+    <ol>
+      <li><strong>Test de Résistance Force Brute :</strong> Tenter 6 connexions d'affilée avec un mot de passe erroné. Observer le blocage automatique HTTP 429 par Flask-Limiter.</li>
+      <li><strong>Test d'Intégrité HMAC :</strong>
+        Chiffrer un message sur la page <code>/encrypt</code>, copier le texte chiffré et son HMAC. Sur la page <code>/hmac</code>, modifier un seul caractère du message : le système signale immédiatement une violation d'intégrité (HMAC Invalide).
+      </li>
+      <li><strong>Test de Contrôle d'Accès RBAC :</strong>
+        Créer un compte standard via <code>/register</code>, puis tenter d'accéder directement à l'URL <code>/admin/dashboard</code>. Constater la redirection immédiate et l'enregistrement d'une tentative suspecte dans le journal d'audit.
+      </li>
+      <li><strong>Audit de la Base de Données :</strong>
+        Inspecter le fichier <code>instance/secure_app.db</code> : constater qu'aucun mot de passe ni message en clair n'est lisible dans les tables <code>users</code> et <code>secure_data</code>.
+      </li>
+    </ol>
+
+    <!-- Conclusion -->
+    <div class="conclusion-box">
+      <h3 style="margin-top:0; color:#065f46;">Conclusion & Perspectives</h3>
+      <p style="margin-bottom:0; font-size:13px; color:#064e3b;">
+        Le projet <strong>SecureAuth</strong> illustre avec rigueur l'implémentation pratique des concepts fondamentaux de la sécurité des applications web modernes. En combinant cryptographie symétrique robuste (AES-256), hachage lent à sens unique (Bcrypt), intégrité cryptographique (HMAC-SHA256) et contrôle d'accès strict (RBAC), la solution garantit la confidentialité, l'intégrité et la disponibilité des données.
+      </p>
+    </div>
+
+  </div>
+
+</body>
+</html>
